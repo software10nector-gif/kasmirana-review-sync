@@ -1,0 +1,60 @@
+name: Kasmirana Review Sync
+
+# Runs automatically every 12 hours, and can also be triggered manually
+# from the GitHub Actions tab (useful right after setup, or after you
+# update a selector in scraper/scrapers/selectors.py).
+on:
+  schedule:
+    - cron: "0 6,18 * * *"   # 06:00 and 18:00 UTC = 11:30am and 11:30pm IST
+  workflow_dispatch: {}       # adds a "Run workflow" button in the Actions tab
+
+# Only one sync should ever run at a time.
+concurrency:
+  group: review-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: scraper/requirements.txt
+
+      - name: Install Python dependencies
+        working-directory: scraper
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright's Chromium browser
+        working-directory: scraper
+        run: playwright install chromium --with-deps
+
+      - name: Run the review sync
+        working-directory: scraper
+        env:
+          WP_BASE_URL: ${{ secrets.WP_BASE_URL }}
+          WP_API_USERNAME: ${{ secrets.WP_API_USERNAME }}
+          WP_API_APP_PASSWORD: ${{ secrets.WP_API_APP_PASSWORD }}
+          WP_SYNC_SHARED_SECRET: ${{ secrets.WP_SYNC_SHARED_SECRET }}
+          FLIPKART_PRODUCT_URL: ${{ secrets.FLIPKART_PRODUCT_URL }}
+          MEESHO_PRODUCT_URL: ${{ secrets.MEESHO_PRODUCT_URL }}
+          HEADLESS: "true"
+        run: python main.py --source all
+
+      # Keeps a copy of the run's log as a downloadable artifact for 14 days,
+      # so you can debug a failed/odd run without re-running it.
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-sync-logs-${{ github.run_number }}
+          path: scraper/logs/*.log
+          retention-days: 14
