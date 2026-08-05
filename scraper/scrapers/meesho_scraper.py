@@ -19,8 +19,19 @@ class MeeshoScraper(BaseScraper):
     source_slug = "meesho"
 
     def scrape(self, page) -> tuple[list[ScrapedReview], Optional[ScrapedProductStats]]:
-        # Meesho is a React SPA — give it time to hydrate before reading text.
-        page.wait_for_timeout(3000)
+        # Meesho is a React SPA — a fixed sleep is unreliable (CI machines can
+        # be slower than a local browser), so wait for real content to
+        # actually appear instead of guessing a duration.
+        try:
+            page.get_by_text(SEL["section_anchor_text"], exact=False).first.wait_for(
+                state="attached", timeout=20000
+            )
+        except Exception as exc:  # noqa: BLE001
+            log.warning(f"[meesho] Reviews section never appeared within 20s: {exc}")
+
+        # Give any late-arriving XHR-populated numbers (rating/review count)
+        # a little extra time to settle even after the anchor text shows up.
+        page.wait_for_timeout(1500)
 
         body_text = page.locator("body").inner_text()
         stats = self._extract_stats(body_text)
