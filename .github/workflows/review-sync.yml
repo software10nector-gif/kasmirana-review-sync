@@ -17,6 +17,9 @@ concurrency:
   group: review-sync
   cancel-in-progress: false
 
+permissions:
+  contents: write   # needed to commit docs/reviews.json back to the repo
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -44,14 +47,24 @@ jobs:
       - name: Run the review sync
         working-directory: scraper
         env:
+          FLIPKART_PRODUCT_URL: ${{ secrets.FLIPKART_PRODUCT_URL }}
+          MEESHO_PRODUCT_URL: ${{ secrets.MEESHO_PRODUCT_URL }}
           WP_BASE_URL: ${{ secrets.WP_BASE_URL }}
           WP_API_USERNAME: ${{ secrets.WP_API_USERNAME }}
           WP_API_APP_PASSWORD: ${{ secrets.WP_API_APP_PASSWORD }}
           WP_SYNC_SHARED_SECRET: ${{ secrets.WP_SYNC_SHARED_SECRET }}
-          FLIPKART_PRODUCT_URL: ${{ secrets.FLIPKART_PRODUCT_URL }}
-          MEESHO_PRODUCT_URL: ${{ secrets.MEESHO_PRODUCT_URL }}
           HEADLESS: "true"
         run: python main.py --source all
+
+      # docs/reviews.json is what GitHub Pages serves for WordPress to pull —
+      # commit it back only if it actually changed (avoids empty commits).
+      - name: Commit updated reviews.json
+        run: |
+          git config user.name "kasmirana-review-bot"
+          git config user.email "actions@github.com"
+          git add docs/reviews.json
+          git diff --cached --quiet && echo "No changes to commit." || git commit -m "Update synced reviews [skip ci]"
+          git push
 
       # Keeps a copy of the run's log as a downloadable artifact for 14 days,
       # so you can debug a failed/odd run without re-running it.
