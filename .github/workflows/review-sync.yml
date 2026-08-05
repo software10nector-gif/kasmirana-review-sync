@@ -1,11 +1,15 @@
 name: Kasmirana Review Sync
 
-# Runs automatically every 12 hours, and can also be triggered manually
-# from the GitHub Actions tab (useful right after setup, or after you
-# update a selector in scraper/scrapers/selectors.py).
+# Runs automatically every 3 hours (8x/day), and can also be triggered
+# manually from the GitHub Actions tab. Flipkart/Meesho intermittently
+# block GitHub's datacenter IPs; each run is a fresh machine (usually a
+# different egress IP from GitHub's pool), so more attempts per day means
+# more chances of landing on one that isn't currently flagged, at zero
+# extra cost — well within the free tier's 2,000 min/month even at this
+# frequency (~8 runs/day x ~1.5 min = ~360 min/month).
 on:
   schedule:
-    - cron: "0 6,18 * * *"   # 06:00 and 18:00 UTC = 11:30am and 11:30pm IST
+    - cron: "0 */3 * * *"
   workflow_dispatch: {}       # adds a "Run workflow" button in the Actions tab
 
 # Only one sync should ever run at a time.
