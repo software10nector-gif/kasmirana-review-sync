@@ -3,13 +3,14 @@ Entry point run by GitHub Actions. One invocation = one full sync cycle:
 
     1. Scrape Flipkart + Meesho (fresh headless browser each time)
     2. Clean / validate each review
-    3. Push every valid 4-5 star review straight to WordPress
-       (WordPress's own fingerprint check silently skips ones it already has —
-       there is no local database here, GitHub Actions runners are thrown
-       away after every run, so WordPress is the single source of truth)
-    4. Push updated overall-rating / review-count stats
+    3. Write every valid 4-5 star review + updated stats to docs/reviews.json
+       (merged with whatever was already there from previous runs)
+    4. The GitHub Actions workflow commits that file back to the repo, where
+       GitHub Pages serves it publicly; WordPress PULLS it on its own
+       schedule (see wordpress-plugin/.../class-ksm-review-github-puller.php)
+       — this sidesteps Hostinger's edge blocking inbound POSTs from GitHub
+       Actions IPs, since WordPress is now the one making the request.
     5. Exit non-zero on failure so the GitHub Actions run shows red/failed
-       and (if you set it up) emails you
 
 Usage:
     python main.py                  # run both sources
@@ -20,11 +21,11 @@ import argparse
 import sys
 
 from config import config, validate_config
+from json_export import merge_and_write
 from scrapers.flipkart_scraper import FlipkartScraper
 from scrapers.meesho_scraper import MeeshoScraper
 from utils.logger import get_logger
 from utils.sanitize import clean_review
-from wp_sync import push_review, push_stats
 
 log = get_logger(__name__)
 
@@ -34,9 +35,9 @@ SCRAPERS = {
 }
 
 
-def run_source(source_slug: str) -> dict:
-    """Scrape one source, clean + push its reviews. Returns a summary dict."""
-    summary = {"source": source_slug, "found": 0, "valid": 0, "synced": 0, "rejected": 0}
+def run_source(source_slug: str, all_reviews: list, all_stats: dict) -> dict:
+    """Scrape one source, clean its reviews, append valid ones to all_reviews."""
+    summary = {"source": source_slug, "found": 0, "valid": 0, "rejected": 0}
 
     scraper = SCRAPERS[source_slug]()
     raw_reviews, stats = scraper.run()
@@ -54,33 +55,27 @@ def run_source(source_slug: str) -> dict:
 
         if not cleaned.is_valid:
             summary["rejected"] += 1
-            log.warning(f"[{source_slug}] Review rejected ({cleaned.reject_reason}), not sent to WordPress.")
+            log.warning(f"[{source_slug}] Review rejected ({cleaned.reject_reason}).")
             continue
 
         if cleaned.rating < config.min_rating_to_sync:
-            continue  # only 4-5 star reviews are ever sent, per requirement
+            continue  # only 4-5 star reviews are ever kept, per requirement
 
         summary["valid"] += 1
-
-        payload = {
+        all_reviews.append({
             "source_slug": cleaned.source_slug,
             "reviewer_name": cleaned.reviewer_name,
             "rating": cleaned.rating,
-            "review_title": cleaned.review_title,
-            "review_text": cleaned.review_text,
+            "review_title": cleaned.review_title or "",
+            "review_text": cleaned.review_text or "",
             "review_date": cleaned.review_date_parsed.isoformat() if cleaned.review_date_parsed else None,
-        }
-        wp_id = push_review(payload)
-        if wp_id is not None:
-            summary["synced"] += 1
-        else:
-            log.error(f"[{source_slug}] WordPress rejected a valid review — see log above.")
+        })
 
     if stats:
-        try:
-            push_stats(source_slug, stats.overall_rating, stats.total_reviews)
-        except Exception as exc:  # noqa: BLE001
-            log.error(f"[{source_slug}] Failed to push stats: {exc}")
+        all_stats[source_slug] = {
+            "overall_rating": stats.overall_rating,
+            "total_reviews": stats.total_reviews,
+        }
 
     return summary
 
@@ -100,20 +95,25 @@ def main() -> int:
 
     overall_ok = True
     summaries = []
+    all_reviews: list[dict] = []
+    all_stats: dict[str, dict] = {}
+
     for source_slug in sources:
         try:
-            summaries.append(run_source(source_slug))
+            summaries.append(run_source(source_slug, all_reviews, all_stats))
         except Exception:  # noqa: BLE001 — one source failing shouldn't stop the other
             log.exception(f"[{source_slug}] Sync failed entirely for this source.")
             overall_ok = False
-            summaries.append({"source": source_slug, "found": 0, "valid": 0, "synced": 0, "rejected": 0, "error": True})
+            summaries.append({"source": source_slug, "found": 0, "valid": 0, "rejected": 0, "error": True})
+
+    added = merge_and_write(all_reviews, all_stats)
 
     log.info("========== RUN SUMMARY ==========")
     for s in summaries:
         log.info(
-            f"{s['source']:10} | found={s['found']:3} valid={s['valid']:3} "
-            f"synced={s['synced']:3} rejected={s['rejected']:3}"
+            f"{s['source']:10} | found={s['found']:3} valid={s['valid']:3} rejected={s['rejected']:3}"
         )
+    log.info(f"new reviews added to docs/reviews.json this run: {added}")
     log.info("==================================")
 
     return 0 if overall_ok else 2
