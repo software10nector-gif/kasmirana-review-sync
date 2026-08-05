@@ -22,12 +22,16 @@ class MeeshoScraper(BaseScraper):
         # Meesho is a React SPA — a fixed sleep is unreliable (CI machines can
         # be slower than a local browser), so wait for real content to
         # actually appear instead of guessing a duration.
-        try:
-            page.get_by_text(SEL["section_anchor_text"], exact=False).first.wait_for(
-                state="attached", timeout=20000
-            )
-        except Exception as exc:  # noqa: BLE001
-            log.warning(f"[meesho] Reviews section never appeared within 20s: {exc}")
+        #
+        # IMPORTANT: this deliberately RAISES (doesn't just log+continue) so
+        # that the @retry on BaseScraper.run() actually retries the whole
+        # browser session on failure — Flipkart's own retries showed that a
+        # later attempt in the SAME job/IP can succeed even when an earlier
+        # one didn't (likely timing/pattern based, not purely IP-based), so
+        # swallowing this error here was silently wasting that retry budget.
+        page.get_by_text(SEL["section_anchor_text"], exact=False).first.wait_for(
+            state="attached", timeout=20000
+        )
 
         # Give any late-arriving XHR-populated numbers (rating/review count)
         # a little extra time to settle even after the anchor text shows up.
