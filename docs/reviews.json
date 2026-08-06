@@ -1,0 +1,236 @@
+{
+  "reviews": [
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Highly recommended",
+      "review_text": "Pure 💯",
+      "review_date": "2026-08-02",
+      "fingerprint": "0d3116c80be013e4534c4618b1de8023ecb6a72e2372079b6eed2e65184c91d2"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Jitu Das",
+      "rating": 5,
+      "review_title": "Just wow!",
+      "review_text": "Super",
+      "review_date": "2026-08-12",
+      "fingerprint": "11bc453ddc8256faf82f1d9c7213ba263dfcd5f30a333eb35c1e8129a4adc986"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Perfect product!",
+      "review_text": "Fabulous product. Absolutely pure.",
+      "review_date": "2026-08-15",
+      "fingerprint": "be75d130730d7ddc6dc8d97dbc3ca971ba4121584ba87992761ba3530101f4ec"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Nunu Seth",
+      "rating": 5,
+      "review_title": "Fabulous!",
+      "review_text": "Nicee🥰",
+      "review_date": "2026-08-02",
+      "fingerprint": "57c92ca63f1dd6813534841a31dea5b92d246e40a53568a9a8b81b666d9c8a61"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Jagruti Mehta",
+      "rating": 5,
+      "review_title": "Just wow!",
+      "review_text": "Good quality. Nice",
+      "review_date": "2026-08-02",
+      "fingerprint": "99846a3a8f6734cc6ef9f80715694d01bcf8b9987f9b6e4e4ce9db2b9bbe0022"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Highly recommended",
+      "review_text": "Pure 💯",
+      "review_date": "2026-08-01",
+      "fingerprint": "64e34ac17cef911a2b83e02818dc4bf39c43d81c77928e9c335a1b3d9134282e"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Perfect product!",
+      "review_text": "Fabulous product. Absolutely pure.",
+      "review_date": "2026-08-14",
+      "fingerprint": "69cc2b7b3ed20b11afdc13ebd3ae99ac225f78b300cbbce21ef76863f0950fe3"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Annu",
+      "rating": 5,
+      "review_title": "Worth every penny",
+      "review_text": "What impressed me the most is the consistency in quality - every strand looks full-bodied and richly pigmented. No unnecessary dryness, no artificial brightness. The infusion is smooth, giving a warm ... more",
+      "review_date": "2026-08-04",
+      "fingerprint": "79e9e3e557c4c9c624ae4add67018c287a9ae05804b12a9e72f41cd3a11bd488"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Sugam Singh",
+      "rating": 5,
+      "review_title": "Great product",
+      "review_text": "Tried this Kashmiri saffron, completely free from any chemicals and absolutely pure. No fancy packaging, but a truly authentic product. It really enhances the taste of desserts, especially pudding.",
+      "review_date": "2026-08-04",
+      "fingerprint": "5480da4a092282e078e85573ca1061925a9f94f2622ab77e30f9dd2e525670f6"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Mathan Kumar",
+      "rating": 5,
+      "review_title": "Super!",
+      "review_text": "Very good product",
+      "review_date": "2026-08-12",
+      "fingerprint": "3799f33ca6f1cb7f76d671f6920c7b625deef57ecb583ebe64345083dd28a40b"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Deepak Patel",
+      "rating": 5,
+      "review_title": "Wonderful",
+      "review_text": "Very good product and very tasty",
+      "review_date": "2026-08-12",
+      "fingerprint": "465961f2662e6776e58374f3dcf3ad79dce8923366988d695592a62a99434f2a"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "ranjeet pandey",
+      "rating": 5,
+      "review_title": "Super!",
+      "review_text": "Good product",
+      "review_date": "2026-08-12",
+      "fingerprint": "2ee1d7d5545b534bc23460bb97920f6a37c32230c3b6f6d200471e05d0735bec"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Simply awesome",
+      "review_text": "Quality proven.....worth it",
+      "review_date": "2026-08-13",
+      "fingerprint": "8d348de7626dd1ad0f3591f266ab436a6f214f3b036c2b069ad887877130d306"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Excellent",
+      "review_text": "Very nice product",
+      "review_date": "2026-08-14",
+      "fingerprint": "b11e471a86e3c845c20757308f37ced3a7f488602287328908a5b7d55dec23b5"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Jagan Patra",
+      "rating": 5,
+      "review_title": "Super!",
+      "review_text": "High-quality product. The quality of the product is excellent.",
+      "review_date": "2026-08-14",
+      "fingerprint": "8802ec089310dd946f60e190280fd36874fb4a38ecce1b81aed08f2cb36042c3"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "AHakkim Abdul.Hakkim",
+      "rating": 4,
+      "review_title": "Value-for-money",
+      "review_text": "Very nice saffron at most affordable range",
+      "review_date": "2026-08-17",
+      "fingerprint": "0e06d04de160ace021216dfec3488013c1469ca778a2bf33f9c0146366e71637"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Anil Yadav",
+      "rating": 5,
+      "review_title": "Terrific purchase",
+      "review_text": "Tasty yummyyy",
+      "review_date": "2026-08-17",
+      "fingerprint": "52c884a42267a1de306df6ab57c0f89668c19447a44bceb718ec07c7ceb74721"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Fabulous!",
+      "review_text": "Feels premium within budget",
+      "review_date": "2026-08-20",
+      "fingerprint": "58b165d1e1de94597ffe819289529256c04ea502c2baaa83bbcb325a67067a4d"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Krishna Mahanti",
+      "rating": 5,
+      "review_title": "Classy product",
+      "review_text": "Very good 👍👍👍👍👍 quality product thanks filpkart",
+      "review_date": "2026-08-25",
+      "fingerprint": "d68d715f90169011f3fbd6e6bd7476c35eff8010826d999566e30c0d3367a1ee"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Just wow!",
+      "review_text": "This is a very good product. Must buy it",
+      "review_date": "2026-08-28",
+      "fingerprint": "790af4d9253612e77bcdfff09723804a54899f768d45aa361951c9187925eb02"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "pasi asha",
+      "rating": 5,
+      "review_title": "Mind-blowing purchase",
+      "review_text": "It's nice flavour and taste awesome",
+      "review_date": "2026-08-29",
+      "fingerprint": "0debce4a64f62235b4076eb5c19fc73ab54ea35a7f8645ecb0496c98632d650b"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Rajaram Sahu",
+      "rating": 5,
+      "review_title": "Great product",
+      "review_text": "Good product 👍",
+      "review_date": "2026-08-01",
+      "fingerprint": "085811fcd1d9d8399731350f8f2b7239bf29304469ce5e1adc0f86ceefacebd0"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Jay Dutta",
+      "rating": 5,
+      "review_title": "Terrific purchase",
+      "review_text": "Awesome 👍🏻 good quality.... Thanks for bringing in very reasonable affordable price ❤️❤️🔥🔥🔥🔥",
+      "review_date": "2026-08-01",
+      "fingerprint": "3bfe517e3bdb282ea1472d53fdfc115114881bc266eea8c1d6289a6fbfb90af4"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Super!",
+      "review_text": "Good product",
+      "review_date": "2026-08-01",
+      "fingerprint": "424c90f062318dc030edb6e59c1f97645274cd299389eff73d6d722a6a6467d9"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Noor Ayesha",
+      "rating": 5,
+      "review_title": "Best in the market!",
+      "review_text": "Wonderful product worth it.😊👍",
+      "review_date": "2026-08-01",
+      "fingerprint": "e26ac788b9e1e71f90cda5c15213ead6fbd9053769b8800511496f454db5c50b"
+    }
+  ],
+  "stats": {
+    "flipkart": {
+      "overall_rating": 4.1,
+      "total_reviews": 212
+    }
+  },
+  "updated_at": "2026-08-06T09:17:19.488191+00:00"
+}
