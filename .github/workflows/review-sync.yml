@@ -59,6 +59,7 @@ jobs:
       # docs/reviews.json is what GitHub Pages serves for WordPress to pull —
       # commit it back only if it actually changed (avoids empty commits).
       - name: Commit updated reviews.json
+        if: always()
         run: |
           git config user.name "kasmirana-review-bot"
           git config user.email "actions@github.com"
