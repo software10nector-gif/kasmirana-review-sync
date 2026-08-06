@@ -23,11 +23,14 @@ log = get_logger(__name__)
 
 class FlipkartScraper(BaseScraper):
     source_slug = "flipkart"
+    warmup_url = "https://www.flipkart.com/"
 
     def scrape(self, page) -> tuple[list[ScrapedReview], Optional[ScrapedProductStats]]:
         # Give the page a moment beyond domcontentloaded — the ratings
         # widget is populated by a follow-up XHR, not present at first paint.
-        page.wait_for_timeout(2000)
+        # Real (headful) Chrome genuinely takes longer to finish rendering
+        # than headless did, so this is more generous than before.
+        page.wait_for_timeout(3500)
 
         body_text = page.locator("body").inner_text()
         stats = self._extract_stats(body_text)
@@ -42,7 +45,7 @@ class FlipkartScraper(BaseScraper):
         for page_num in range(1, SEL["max_review_pages"] + 1):
             url = f"{reviews_page_url}&page={page_num}"
             page.goto(url, wait_until="domcontentloaded")
-            page.wait_for_timeout(1500)
+            page.wait_for_timeout(2500)
             page_text = page.locator("body").inner_text()
 
             found_this_page = 0
