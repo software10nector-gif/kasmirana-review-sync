@@ -31,7 +31,18 @@ _OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "reviews.js
 
 
 def _fingerprint(review: dict) -> str:
-    raw = f"{review['source_slug']}|{review['reviewer_name'].strip().lower()}|{review['review_text'].strip().lower()}|{review.get('review_date') or ''}"
+    # NOT based on review_text: the same review can be scraped twice with
+    # different text — once truncated ("...more") from the main product
+    # page's small preview, once in full from the paginated all-reviews
+    # page — which previously produced two different fingerprints for one
+    # real review. reviewer_name + review_date + title is stable across
+    # both scrape paths and still distinguishes different reviewers who
+    # share Flipkart's generic "Flipkart Customer" display name, since
+    # those have different dates/titles.
+    raw = (
+        f"{review['source_slug']}|{review['reviewer_name'].strip().lower()}|"
+        f"{review.get('review_date') or ''}|{(review.get('review_title') or '').strip().lower()}"
+    )
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
