@@ -44,6 +44,15 @@ jobs:
         working-directory: scraper
         run: playwright install chromium --with-deps
 
+      # Real Google Chrome (not bundled Chromium) is closer to what a real
+      # user's browser reports — missing proprietary bits in Chromium
+      # (codecs, Widevine) are one of the signals Akamai's bot detection
+      # (which Meesho runs) checks for. base_scraper.py tries this channel
+      # first and falls back to Chromium automatically if unavailable.
+      - name: Install real Google Chrome
+        working-directory: scraper
+        run: playwright install chrome --with-deps
+
       - name: Run the review sync
         working-directory: scraper
         env:
@@ -58,6 +67,11 @@ jobs:
 
       # docs/reviews.json is what GitHub Pages serves for WordPress to pull —
       # commit it back only if it actually changed (avoids empty commits).
+      # if: always() is essential here — main.py exits non-zero whenever ANY
+      # one source fails (e.g. Meesho blocked), but a source that DID
+      # succeed (e.g. Flipkart) still wrote real data to the file, and that
+      # partial progress must not be thrown away just because its sibling
+      # source failed in the same run.
       - name: Commit updated reviews.json
         if: always()
         run: |
