@@ -17,7 +17,7 @@ log = get_logger(__name__)
 
 class MeeshoScraper(BaseScraper):
     source_slug = "meesho"
-    class MeeshoScraper(BaseScraper):
+    warmup_url = "https://www.meesho.com/"
 
     def scrape(self, page) -> tuple[list[ScrapedReview], Optional[ScrapedProductStats]]:
         # Meesho is a React SPA — a fixed sleep is unreliable (CI machines can
