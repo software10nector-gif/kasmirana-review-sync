@@ -49,8 +49,15 @@ class FlipkartScraper(BaseScraper):
                         "falling back to the small preview on the main product page.")
             return self._extract_from_window(body_text), stats
 
+        # NOTE: we deliberately visit every page up to max_review_pages and
+        # never break early on "0 new reviews" — confirmed by direct manual
+        # inspection that Flipkart's review ordering on this "all reviews"
+        # page is NOT stable/chronological across page numbers (a review
+        # dated "4 months ago" can appear on a later page than one dated
+        # "1 month ago"). An early break on a couple of empty pages was
+        # silently skipping genuinely new reviews that just happened to be
+        # reshuffled onto a later page in this run's ordering.
         reviews_by_key: dict = {}
-        consecutive_empty_pages = 0
         for page_num in range(1, SEL["max_review_pages"] + 1):
             url = f"{reviews_page_url}&page={page_num}"
             page.goto(url, wait_until="domcontentloaded")
@@ -93,12 +100,6 @@ class FlipkartScraper(BaseScraper):
                 found_this_page += 1
 
             log.info(f"[flipkart] Page {page_num}: {found_this_page} new review(s).")
-            if found_this_page == 0:
-                consecutive_empty_pages += 1
-                if consecutive_empty_pages >= 2:
-                    break  # ran past the last page
-            else:
-                consecutive_empty_pages = 0
 
         reviews = list(reviews_by_key.values())
         if not reviews:
