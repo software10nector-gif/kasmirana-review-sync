@@ -10,7 +10,16 @@ name: Kasmirana Review Sync
 on:
   schedule:
     - cron: "0 */3 * * *"
-  workflow_dispatch: {}       # adds a "Run workflow" button in the Actions tab
+  workflow_dispatch:          # adds a "Run workflow" button in the Actions tab
+    inputs:
+      source:
+        description: "Which source(s) to sync"
+        type: choice
+        default: "all"
+        options:
+          - all
+          - flipkart
+          - meesho
 
 # Only one sync should ever run at a time.
 concurrency:
@@ -62,7 +71,7 @@ jobs:
           # removes essentially every automation signal except the CDP
           # protocol Playwright uses to drive it.
           HEADLESS: "false"
-        run: python main.py --source all
+        run: python main.py --source ${{ github.event.inputs.source || 'all' }}
 
       # docs/reviews.json is what GitHub Pages serves for WordPress to pull —
       # commit it back only if it actually changed (avoids empty commits).
