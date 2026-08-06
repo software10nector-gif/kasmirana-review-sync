@@ -62,6 +62,42 @@
       "review_text": "Good quality. Nice",
       "review_date": "2026-08-02",
       "fingerprint": "1aa9b441179e82f99167caa81418b92ddbc3948f078dcbedbd86293ab3ea21d7"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Highly recommended",
+      "review_text": "Pure 💯",
+      "review_date": "2026-08-01",
+      "fingerprint": "3e47f21205fba3150f01152c17ddf446efa5b076f58fa82e8daa88a916527ae2"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Perfect product!",
+      "review_text": "Fabulous product. Absolutely pure.",
+      "review_date": "2026-08-14",
+      "fingerprint": "706c13b8a99e0a4f695ee08c714ec25e9d8bdb51d686a8d4a2e725c617074ba2"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Annu",
+      "rating": 5,
+      "review_title": "Worth every penny",
+      "review_text": "What impressed me the most is the consistency in quality - every strand looks full-bodied and richly pigmented. No unnecessary dryness, no artificial brightness. The infusion is smooth, giving a warm ... more",
+      "review_date": "2026-08-04",
+      "fingerprint": "4797b585f61f2acebb89fc269fd415c7484f0e34fca62f2715e706f9ddf4fd7d"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Sugam Singh",
+      "rating": 5,
+      "review_title": "Great product",
+      "review_text": "Tried this Kashmiri saffron, completely free from any chemicals and absolutely pure. No fancy packaging, but a truly authentic product. It really enhances the taste of desserts, especially pudding.",
+      "review_date": "2026-08-04",
+      "fingerprint": "ed0092edc180deea3245ac320877dee13e981622223bdbd2d51d7ba8ce7fc26e"
     }
   ],
   "stats": {
@@ -70,5 +106,5 @@
       "total_reviews": 212
     }
   },
-  "updated_at": "2026-08-06T07:47:00.467976+00:00"
+  "updated_at": "2026-08-06T08:11:51.826054+00:00"
 }
