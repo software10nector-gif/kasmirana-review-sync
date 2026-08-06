@@ -1,5 +1,74 @@
 {
-  "reviews": [],
-  "stats": {},
-  "updated_at": "2026-08-06T04:31:22.674124+00:00"
+  "reviews": [
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Highly recommended",
+      "review_text": "Pure 💯",
+      "review_date": "2026-08-02",
+      "fingerprint": "2e80c208e9bc27ee6d12468a2af3b1b513cd885eae577817d91038f148aeb8dd"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Jitu Das",
+      "rating": 5,
+      "review_title": "Just wow!",
+      "review_text": "Super",
+      "review_date": "2026-08-12",
+      "fingerprint": "652feb57b73717f990a1496eec5ffeb34c2d53aecfd63fa4e02c2bad060d1a37"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Perfect product!",
+      "review_text": "Fabulous product. Absolutely pure.",
+      "review_date": "2026-08-15",
+      "fingerprint": "e2d3d210ce433bdf2bbe8760fabf4b15878a0e64448c139624fb68a4ac0536d9"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Annu",
+      "rating": 5,
+      "review_title": "Worth every penny",
+      "review_text": "What impressed me the most is the consistency in q...more",
+      "review_date": "2026-08-04",
+      "fingerprint": "bb8fe04630d7ed665a6ebb4b43adb15c7938c6840f0d23d1604d2beaa5c39306"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Sugam Singh",
+      "rating": 5,
+      "review_title": "Great product",
+      "review_text": "Tried this Kashmiri saffron, completely free from ...more",
+      "review_date": "2026-08-04",
+      "fingerprint": "265fa93641771b2b56699382d492cf37077d35d235a65f0e5300eac9f46b58db"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Nunu Seth",
+      "rating": 5,
+      "review_title": "Fabulous!",
+      "review_text": "Nicee🥰",
+      "review_date": "2026-08-02",
+      "fingerprint": "fc47bde05aab2d38d74affc33c758a5fb17feb9b01e1ee36414ebc847596f9a3"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Jagruti Mehta",
+      "rating": 5,
+      "review_title": "Just wow!",
+      "review_text": "Good quality. Nice",
+      "review_date": "2026-08-02",
+      "fingerprint": "1aa9b441179e82f99167caa81418b92ddbc3948f078dcbedbd86293ab3ea21d7"
+    }
+  ],
+  "stats": {
+    "flipkart": {
+      "overall_rating": 4.1,
+      "total_reviews": 212
+    }
+  },
+  "updated_at": "2026-08-06T04:48:23.990175+00:00"
 }
