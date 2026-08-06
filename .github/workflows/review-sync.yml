@@ -55,7 +55,13 @@ jobs:
           WP_API_USERNAME: ${{ secrets.WP_API_USERNAME }}
           WP_API_APP_PASSWORD: ${{ secrets.WP_API_APP_PASSWORD }}
           WP_SYNC_SHARED_SECRET: ${{ secrets.WP_SYNC_SHARED_SECRET }}
-          HEADLESS: "true"
+          # Running headFUL (a real visible browser window) on this
+          # self-hosted PC — even genuine Chrome with the --headless flag
+          # is itself a detectable automation signal some anti-bot systems
+          # key on; a real ISP IP + a real, visibly-rendering Chrome window
+          # removes essentially every automation signal except the CDP
+          # protocol Playwright uses to drive it.
+          HEADLESS: "false"
         run: python main.py --source all
 
       # docs/reviews.json is what GitHub Pages serves for WordPress to pull —
