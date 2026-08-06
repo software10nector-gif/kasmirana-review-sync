@@ -1,11 +1,18 @@
 """
 Flipkart product-review scraper.
 
+Fetches ALL written reviews (not just the small preview on the main product
+page) by paginating through Flipkart's own dedicated "all reviews" page:
+    .../product-reviews/{item_id}?pid={pid}&page=N
+confirmed by direct inspection to show a genuinely different, larger batch
+of reviews per page (~10/page) than the product page's inline preview.
+
 Extraction is TEXT-PATTERN based (see selectors.py) rather than CSS-selector
 based, because Flipkart's CSS class names are randomized per-build and are
 not stable identifiers — confirmed by direct DOM inspection.
 """
 from typing import Optional
+from urllib.parse import urlparse, parse_qs
 
 from scrapers.base_scraper import BaseScraper, ScrapedProductStats, ScrapedReview
 from scrapers.selectors import FLIPKART as SEL
@@ -23,17 +30,71 @@ class FlipkartScraper(BaseScraper):
         page.wait_for_timeout(2000)
 
         body_text = page.locator("body").inner_text()
-
         stats = self._extract_stats(body_text)
 
+        reviews_page_url = self._build_reviews_page_url(self.product_url)
+        if not reviews_page_url:
+            log.warning("[flipkart] Could not derive the paginated reviews page URL, "
+                        "falling back to the small preview on the main product page.")
+            return self._extract_from_window(body_text), stats
+
+        reviews_by_key: dict = {}
+        for page_num in range(1, SEL["max_review_pages"] + 1):
+            url = f"{reviews_page_url}&page={page_num}"
+            page.goto(url, wait_until="domcontentloaded")
+            page.wait_for_timeout(1500)
+            page_text = page.locator("body").inner_text()
+
+            found_this_page = 0
+            for match in SEL["paginated_review_pattern"].finditer(page_text):
+                rating_str, title, text, reviewer_name, date_raw = match.groups()
+                try:
+                    rating = int(rating_str)
+                except ValueError:
+                    continue
+                key = (reviewer_name.strip(), text.strip()[:60])
+                if key in reviews_by_key:
+                    continue
+                reviews_by_key[key] = ScrapedReview(
+                    reviewer_name=reviewer_name.strip() or "Anonymous",
+                    rating=rating,
+                    review_title=title.strip(),
+                    review_text=text.strip(),
+                    review_date_raw=date_raw.strip(),
+                )
+                found_this_page += 1
+
+            log.info(f"[flipkart] Page {page_num}: {found_this_page} new review(s).")
+            if found_this_page == 0:
+                break  # ran past the last page
+
+        reviews = list(reviews_by_key.values())
+        if not reviews:
+            # Nothing from pagination — try the small inline preview as a
+            # last resort before giving up (and retrying via BaseScraper).
+            reviews = self._extract_from_window(body_text)
+
+        return reviews, stats
+
+    def _build_reviews_page_url(self, product_url: str) -> Optional[str]:
+        parsed = urlparse(product_url)
+        if "/p/" not in parsed.path:
+            return None
+        path = parsed.path.replace("/p/", "/product-reviews/")
+        pid = parse_qs(parsed.query).get("pid", [None])[0]
+        if not pid:
+            return None
+        return f"{parsed.scheme}://{parsed.netloc}{path}?pid={pid}"
+
+    def _extract_from_window(self, body_text: str) -> list[ScrapedReview]:
+        """Fallback: the ~5-8 review preview embedded on the main product page."""
         anchor_idx = body_text.find(SEL["section_anchor_text"])
         if anchor_idx == -1:
             log.warning("[flipkart] Could not find the reviews section anchor text on the page.")
-            return [], stats
+            return []
 
         window = body_text[anchor_idx: anchor_idx + SEL["section_window_chars"]]
-
-        reviews: list[ScrapedReview] = []
+        reviews = []
         for match in SEL["review_pattern"].finditer(window):
             rating_str, title, date_raw, text, reviewer_name = match.group(1, 2, 3, 4, 5)
             try:
@@ -49,8 +110,7 @@ class FlipkartScraper(BaseScraper):
                     review_date_raw=date_raw.strip(),
                 )
             )
-
-        return reviews, stats
+        return reviews
 
     def _extract_stats(self, body_text: str) -> Optional[ScrapedProductStats]:
         rating_match = SEL["overall_rating_pattern"].search(body_text)
