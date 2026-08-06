@@ -54,11 +54,23 @@ class FlipkartScraper(BaseScraper):
         for page_num in range(1, SEL["max_review_pages"] + 1):
             url = f"{reviews_page_url}&page={page_num}"
             page.goto(url, wait_until="domcontentloaded")
-            # A single slow page load shouldn't be mistaken for "ran out of
-            # pages" — give each page a real chance, and only stop after
-            # TWO consecutive empty pages (handles one-off timing hiccups
-            # instead of truncating the result set early).
-            page.wait_for_timeout(3500)
+
+            # Confirmed via manual testing: page N genuinely has different
+            # reviews from page N-1 (this is NOT a "ran out of pages"
+            # situation) — but the scraper was sometimes reading stale
+            # content before the new page's reviews had rendered, causing
+            # false "0 new" reports. Wait for the review pattern to actually
+            # appear (up to 8s) instead of a blind fixed delay, which is
+            # more reliable across a range of real network/render speeds.
+            try:
+                page.wait_for_function(
+                    "document.body.innerText.includes('Verified Purchase')",
+                    timeout=8000,
+                )
+            except Exception as exc:  # noqa: BLE001
+                log.warning(f"[flipkart] Page {page_num}: reviews never appeared within 8s: {exc}")
+            page.wait_for_timeout(1000)  # let the rest of the list finish rendering
+
             page_text = page.locator("body").inner_text()
 
             found_this_page = 0
