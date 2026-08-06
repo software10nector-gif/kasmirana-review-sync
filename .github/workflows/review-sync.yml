@@ -1,12 +1,12 @@
 name: Kasmirana Review Sync
 
-# Runs automatically every 3 hours (8x/day), and can also be triggered
-# manually from the GitHub Actions tab. Flipkart/Meesho intermittently
-# block GitHub's datacenter IPs; each run is a fresh machine (usually a
-# different egress IP from GitHub's pool), so more attempts per day means
-# more chances of landing on one that isn't currently flagged, at zero
-# extra cost — well within the free tier's 2,000 min/month even at this
-# frequency (~8 runs/day x ~1.5 min = ~360 min/month).
+# Runs on a SELF-HOSTED runner (a real office PC on a residential/business
+# ISP connection), NOT GitHub's own hosted runners. Meesho runs Akamai Bot
+# Manager, which was confirmed (via direct network inspection) to reject
+# the very first request at the network level from GitHub's own datacenter
+# IP ranges — no browser fingerprint trick fixes that, since it's an IP/TLS
+# reputation decision, not a JS-challenge. A real ISP connection has a much
+# better trust reputation with these systems than any cloud provider's IPs.
 on:
   schedule:
     - cron: "0 */3 * * *"
@@ -22,19 +22,12 @@ permissions:
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, kasmirana-office]
     timeout-minutes: 15
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
-          cache-dependency-path: scraper/requirements.txt
 
       - name: Install Python dependencies
         working-directory: scraper
@@ -42,7 +35,7 @@ jobs:
 
       - name: Install Playwright's Chromium browser
         working-directory: scraper
-        run: playwright install chromium --with-deps
+        run: playwright install chromium
 
       # Real Google Chrome (not bundled Chromium) is closer to what a real
       # user's browser reports — missing proprietary bits in Chromium
@@ -51,7 +44,7 @@ jobs:
       # first and falls back to Chromium automatically if unavailable.
       - name: Install real Google Chrome
         working-directory: scraper
-        run: playwright install chrome --with-deps
+        run: playwright install chrome
 
       - name: Run the review sync
         working-directory: scraper
@@ -72,8 +65,12 @@ jobs:
       # succeed (e.g. Flipkart) still wrote real data to the file, and that
       # partial progress must not be thrown away just because its sibling
       # source failed in the same run.
+      # shell: bash explicitly, since this step's && / || syntax needs Git
+      # Bash (present because Git for Windows is installed) rather than the
+      # Windows runner's default PowerShell shell.
       - name: Commit updated reviews.json
         if: always()
+        shell: bash
         run: |
           git config user.name "kasmirana-review-bot"
           git config user.email "actions@github.com"
