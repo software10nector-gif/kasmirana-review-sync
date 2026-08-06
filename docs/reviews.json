@@ -224,6 +224,60 @@
       "review_text": "Wonderful product worth it.😊👍",
       "review_date": "2026-08-01",
       "fingerprint": "e26ac788b9e1e71f90cda5c15213ead6fbd9053769b8800511496f454db5c50b"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Best in the market!",
+      "review_text": "i loved it",
+      "review_date": "2026-08-01",
+      "fingerprint": "db2a4e60a1242881e67705c784af3671fb73b91cfca47e53f30702456fda37be"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Neha Kolkar",
+      "rating": 5,
+      "review_title": "Highly recommended",
+      "review_text": "Just loved it",
+      "review_date": "2026-08-03",
+      "fingerprint": "a9b9c5b37b2ae011d76778cc408c632687406170a6a3397ab8d11bb68487c574"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Kittu Singh",
+      "rating": 5,
+      "review_title": "Worth every penny",
+      "review_text": "Good quality Kashmiri saffron. The fragrance is natural and the color is nice. Satisfied with the product. ⭐",
+      "review_date": "2026-08-04",
+      "fingerprint": "850ebe4da13ccb3f19180a58b8100b0f89d4eaff5cc5014cc6f9a986fc6ecd76"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Akshita Rawat",
+      "rating": 5,
+      "review_title": "Worth every penny",
+      "review_text": "Very nice product . The quality is good. It gives good colour and aroma to food. I am happy with this purchase.Must-buy product.",
+      "review_date": "2026-08-04",
+      "fingerprint": "2c0f2bc12c4f5ec465b0d10b67da00d4697aa7a50411988331bffa3ae8f05a5c"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "MAYANK KUSHWAHA",
+      "rating": 5,
+      "review_title": "Terrific",
+      "review_text": "I would recommend this product to anyone looking for high-quality saffron for both cooking and health benefits.",
+      "review_date": "2026-08-04",
+      "fingerprint": "d695458d0a9852f4d7c94b26d6467ec6168da9a81fd1cafdfb605cf495ccea7d"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Palak Dhiman",
+      "rating": 5,
+      "review_title": "Excellent",
+      "review_text": "The saffron quality is really good. Threads are long, deep red and give excellent color and aroma. Happy with this purchase.",
+      "review_date": "2026-08-04",
+      "fingerprint": "42de42193f8d110f0783438c908285286008b7faac5a829f1ec2bf4c1f47f925"
     }
   ],
   "stats": {
@@ -232,5 +286,5 @@
       "total_reviews": 212
     }
   },
-  "updated_at": "2026-08-06T10:21:49.327897+00:00"
+  "updated_at": "2026-08-06T10:30:23.084182+00:00"
 }
