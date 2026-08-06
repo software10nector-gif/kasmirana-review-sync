@@ -11,14 +11,32 @@ Extraction is TEXT-PATTERN based (see selectors.py) rather than CSS-selector
 based, because Flipkart's CSS class names are randomized per-build and are
 not stable identifiers — confirmed by direct DOM inspection.
 """
+import random
 from typing import Optional
 from urllib.parse import urlparse, parse_qs
+
+try:
+    from playwright_stealth import stealth_sync
+    _STEALTH_AVAILABLE = True
+except ImportError:
+    _STEALTH_AVAILABLE = False
 
 from scrapers.base_scraper import BaseScraper, ScrapedProductStats, ScrapedReview
 from scrapers.selectors import FLIPKART as SEL
 from utils.logger import get_logger
 
 log = get_logger(__name__)
+
+# Same rotation base_scraper.py uses, kept local so this module doesn't
+# depend on base_scraper's private constant.
+_USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+]
 
 
 class FlipkartScraper(BaseScraper):
@@ -58,7 +76,29 @@ class FlipkartScraper(BaseScraper):
         # silently skipping genuinely new reviews that just happened to be
         # reshuffled onto a later page in this run's ordering.
         reviews_by_key: dict = {}
+        # Confirmed by repeated live runs: pages 1-4 consistently succeed,
+        # pages 5+ consistently time out waiting for review content — same
+        # boundary every time, regardless of the inter-page delay. That's a
+        # per-session page-count signal, not a speed one: a 3-6s delay alone
+        # never got past page 4. So every RESTART_EVERY pages we throw away
+        # the browser context entirely and open a brand new one (new UA,
+        # fresh cookies/storage, re-run the homepage warm-up) before
+        # continuing — to Flipkart this looks like a new visitor arriving,
+        # not the same session requesting a 5th/6th/7th page in a row.
+        RESTART_EVERY = 4
         for page_num in range(1, SEL["max_review_pages"] + 1):
+            if page_num > 1:
+                # A human clicking through pages doesn't do it every ~1.4s
+                # flat — hitting 10 pages back-to-back with no variance is
+                # itself a bot signal. A randomized pause between page loads
+                # was added after a run got soft-blocked (empty page,
+                # missing rating/anchor text) immediately following a prior
+                # run that hammered all 10 pages with no gaps.
+                page.wait_for_timeout(random.randint(3000, 6000))
+
+            if page_num > 1 and (page_num - 1) % RESTART_EVERY == 0:
+                page = self._fresh_session(page)
+
             url = f"{reviews_page_url}&page={page_num}"
             page.goto(url, wait_until="domcontentloaded")
 
@@ -108,6 +148,44 @@ class FlipkartScraper(BaseScraper):
             reviews = self._extract_from_window(body_text)
 
         return reviews, stats
+
+    def _fresh_session(self, old_page):
+        """Closes the current browser context and opens a brand new one
+        (new context = new cookies/storage/UA), then does a quick homepage
+        warm-up — so the next paginated-page request looks like a fresh
+        visitor arriving, not the same session's 5th+ consecutive request."""
+        old_context = old_page.context
+        browser = old_context.browser
+        old_context.close()
+
+        new_context = browser.new_context(
+            user_agent=random.choice(_USER_AGENTS),
+            viewport={"width": 1366, "height": 900},
+            locale="en-IN",
+            timezone_id="Asia/Kolkata",
+            extra_http_headers={"Accept-Language": "en-IN,en;q=0.9"},
+        )
+        new_context.add_init_script(
+            """
+            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+            Object.defineProperty(navigator, 'languages', {get: () => ['en-IN', 'en']});
+            Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+            window.chrome = { runtime: {} };
+            """
+        )
+        new_page = new_context.new_page()
+        if _STEALTH_AVAILABLE:
+            stealth_sync(new_page)
+
+        try:
+            new_page.goto(self.warmup_url, wait_until="domcontentloaded")
+            new_page.mouse.wheel(0, random.randint(300, 700))
+            new_page.wait_for_timeout(random.uniform(1500, 3000))
+        except Exception as exc:  # noqa: BLE001
+            log.warning(f"[flipkart] Fresh-session warm-up failed, continuing anyway: {exc}")
+
+        log.info("[flipkart] Started a fresh browser session for the next batch of pages.")
+        return new_page
 
     def _build_reviews_page_url(self, product_url: str) -> Optional[str]:
         parsed = urlparse(product_url)
