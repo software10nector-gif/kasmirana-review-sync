@@ -278,6 +278,15 @@
       "review_text": "The saffron quality is really good. Threads are long, deep red and give excellent color and aroma. Happy with this purchase.",
       "review_date": "2026-08-04",
       "fingerprint": "42de42193f8d110f0783438c908285286008b7faac5a829f1ec2bf4c1f47f925"
+    },
+    {
+      "source_slug": "flipkart",
+      "reviewer_name": "Flipkart Customer",
+      "rating": 5,
+      "review_title": "Just wow!",
+      "review_text": "This is a very good product. Must buy it",
+      "review_date": "2026-08-29",
+      "fingerprint": "76f39d1c56059eb08ee9d574a4b6a6e67104387cabf07665bcdab68abd5e59e2"
     }
   ],
   "stats": {
@@ -286,5 +295,5 @@
       "total_reviews": 212
     }
   },
-  "updated_at": "2026-08-06T10:30:23.084182+00:00"
+  "updated_at": "2026-08-06T11:16:10.679532+00:00"
 }
