@@ -28,9 +28,17 @@ class FlipkartScraper(BaseScraper):
     def scrape(self, page) -> tuple[list[ScrapedReview], Optional[ScrapedProductStats]]:
         # Give the page a moment beyond domcontentloaded — the ratings
         # widget is populated by a follow-up XHR, not present at first paint.
-        # Real (headful) Chrome genuinely takes longer to finish rendering
-        # than headless did, so this is more generous than before.
-        page.wait_for_timeout(3500)
+        page.wait_for_timeout(2000)
+
+        # The ratings/review widget on Flipkart's product page appears to be
+        # lazy-loaded once scrolled into view (confirmed: the page visibly
+        # loads fine, but the ratings text is absent from body.inner_text()
+        # until this happens) — scroll down a few times, like a real reader
+        # would, before reading anything.
+        for _ in range(4):
+            page.mouse.wheel(0, 1200)
+            page.wait_for_timeout(700)
+        page.wait_for_timeout(1500)
 
         body_text = page.locator("body").inner_text()
         stats = self._extract_stats(body_text)
@@ -42,10 +50,15 @@ class FlipkartScraper(BaseScraper):
             return self._extract_from_window(body_text), stats
 
         reviews_by_key: dict = {}
+        consecutive_empty_pages = 0
         for page_num in range(1, SEL["max_review_pages"] + 1):
             url = f"{reviews_page_url}&page={page_num}"
             page.goto(url, wait_until="domcontentloaded")
-            page.wait_for_timeout(2500)
+            # A single slow page load shouldn't be mistaken for "ran out of
+            # pages" — give each page a real chance, and only stop after
+            # TWO consecutive empty pages (handles one-off timing hiccups
+            # instead of truncating the result set early).
+            page.wait_for_timeout(3500)
             page_text = page.locator("body").inner_text()
 
             found_this_page = 0
@@ -69,7 +82,11 @@ class FlipkartScraper(BaseScraper):
 
             log.info(f"[flipkart] Page {page_num}: {found_this_page} new review(s).")
             if found_this_page == 0:
-                break  # ran past the last page
+                consecutive_empty_pages += 1
+                if consecutive_empty_pages >= 2:
+                    break  # ran past the last page
+            else:
+                consecutive_empty_pages = 0
 
         reviews = list(reviews_by_key.values())
         if not reviews:
