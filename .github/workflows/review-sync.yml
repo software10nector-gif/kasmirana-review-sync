@@ -65,12 +65,13 @@ jobs:
       # succeed (e.g. Flipkart) still wrote real data to the file, and that
       # partial progress must not be thrown away just because its sibling
       # source failed in the same run.
-      # shell: bash explicitly, since this step's && / || syntax needs Git
-      # Bash (present because Git for Windows is installed) rather than the
-      # Windows runner's default PowerShell shell.
+      # Explicit path to Git's own bash.exe — plain "shell: bash" resolved to
+      # Windows' built-in WSL launcher stub on this runner (no Linux
+      # distribution installed there), not Git for Windows' real bash, which
+      # is what this step's && / || syntax actually needs.
       - name: Commit updated reviews.json
         if: always()
-        shell: bash
+        shell: "C:\\Program Files\\Git\\bin\\bash.exe -e {0}"
         run: |
           git config user.name "kasmirana-review-bot"
           git config user.email "actions@github.com"
