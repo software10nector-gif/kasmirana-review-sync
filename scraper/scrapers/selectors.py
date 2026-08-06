@@ -45,6 +45,32 @@ FLIPKART = {
 
     # How far past the section anchor to search for review cards (page text is long)
     "section_window_chars": 6000,
+
+    # ---- Dedicated "all reviews" page (paginated, ~10 reviews/page) ----
+    # URL pattern: the product page URL's "/p/" segment becomes
+    # "/product-reviews/", keeping only the "pid" query param, then
+    # "&page=N" for N = 1, 2, 3... Confirmed by direct inspection: this
+    # page shows a genuinely different, larger set of reviews per page
+    # than the small preview embedded on the main product page.
+    #
+    # Real example line-by-line (note: "Verified Purchase" here, NOT
+    # "Verified Buyer" like the main product page's preview cards):
+    #   5.0
+    #   •
+    #   Highly recommended
+    #   Review for: Quantity 0.5 g
+    #   Pure 💯
+    #   Flipkart Customer
+    #   , Deoband
+    #   Helpful for 3
+    #   1                    <- optional, not-helpful count (not always present)
+    #   Verified Purchase
+    #   · 1 month ago
+    "paginated_review_pattern": re.compile(
+        r"(\d)\.0\n•\n([^\n]+)\nReview for:[^\n]*\n([^\n]+)\n([^\n]+)\n,\s*[^\n]+\n"
+        r"Helpful for \d+\n(?:\d+\n)?Verified Purchase\n·\s*([^\n]+)"
+    ),
+    "max_review_pages": 10,
 }
 
 MEESHO = {
