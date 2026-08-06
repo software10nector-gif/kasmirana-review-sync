@@ -65,19 +65,23 @@ jobs:
       # succeed (e.g. Flipkart) still wrote real data to the file, and that
       # partial progress must not be thrown away just because its sibling
       # source failed in the same run.
-      # Explicit path to Git's own bash.exe — plain "shell: bash" resolved to
-      # Windows' built-in WSL launcher stub on this runner (no Linux
-      # distribution installed there), not Git for Windows' real bash, which
-      # is what this step's && / || syntax actually needs.
+      # Written in PowerShell (this runner's default shell) instead of bash —
+      # a custom bash.exe shell path was tried and rejected by the runner
+      # ("Second path fragment must not be a drive or UNC name"), so this
+      # avoids the whole bash-vs-WSL question by not needing bash at all.
       - name: Commit updated reviews.json
         if: always()
-        shell: "C:\\Program Files\\Git\\bin\\bash.exe -e {0}"
         run: |
           git config user.name "kasmirana-review-bot"
           git config user.email "actions@github.com"
           git add docs/reviews.json
-          git diff --cached --quiet && echo "No changes to commit." || git commit -m "Update synced reviews [skip ci]"
-          git push
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "No changes to commit."
+          } else {
+            git commit -m "Update synced reviews [skip ci]"
+            git push
+          }
 
       # Keeps a copy of the run's log as a downloadable artifact for 14 days,
       # so you can debug a failed/odd run without re-running it.
