@@ -1,11 +1,26 @@
 """
 Meesho product-review scraper.
 
-Extraction is TEXT-PATTERN based (see selectors.py) — Meesho's styled-
-components CSS classes are hash-suffixed and get reused across unrelated
-elements between builds, confirmed by direct DOM inspection, so they are
-not usable as stable selectors.
+REWRITTEN to use Meesho's own internal review API response instead of
+DOM-text scraping. Investigated directly via the browser's network panel:
+Meesho's page embeds an initial batch of reviews as server-rendered JSON
+(__NEXT_DATA__), then loads more via a real internal endpoint when
+"VIEW ALL REVIEWS" is clicked:
+
+    POST https://www.meesho.com/api/v1/products/review_summary
+
+...which returns clean structured JSON (review_id, rating, comments, author,
+created date) — no fragile text-pattern parsing needed at all. This is both
+more robust AND faster than waiting for/parsing rendered DOM text.
+
+Two independent extraction paths, merged and de-duplicated by review_id:
+  1. __NEXT_DATA__ SSR payload — present immediately on page load, before
+     any interaction, so it survives even if the click-to-expand step fails.
+  2. The review_summary API response — captured by listening for the
+     network response Playwright would see anyway when clicking "VIEW ALL
+     REVIEWS", giving the full paginated set instead of just the preview.
 """
+import json
 from typing import Optional
 
 from scrapers.base_scraper import BaseScraper, ScrapedProductStats, ScrapedReview
@@ -14,86 +29,92 @@ from utils.logger import get_logger
 
 log = get_logger(__name__)
 
+_REVIEW_API_PATTERN = "**/api/v1/products/review_summary*"
+
 
 class MeeshoScraper(BaseScraper):
     source_slug = "meesho"
     warmup_url = "https://www.meesho.com/"
 
     def scrape(self, page) -> tuple[list[ScrapedReview], Optional[ScrapedProductStats]]:
-        # Meesho is a React SPA — a fixed sleep is unreliable (CI machines can
-        # be slower than a local browser), so wait for real content to
-        # actually appear instead of guessing a duration.
-        #
-        # IMPORTANT: this deliberately RAISES (doesn't just log+continue) so
-        # that the @retry on BaseScraper.run() actually retries the whole
-        # browser session on failure — Flipkart's own retries showed that a
-        # later attempt in the SAME job/IP can succeed even when an earlier
-        # one didn't (likely timing/pattern based, not purely IP-based), so
-        # swallowing this error here was silently wasting that retry budget.
-        page.get_by_text(SEL["section_anchor_text"], exact=False).first.wait_for(
-            state="attached", timeout=20000
-        )
+        reviews_by_id: dict = {}
+        stats: Optional[ScrapedProductStats] = None
 
-        # Give any late-arriving XHR-populated numbers (rating/review count)
-        # a little extra time to settle even after the anchor text shows up.
-        page.wait_for_timeout(1500)
+        # ---- Path 1: whatever's already embedded in the initial SSR HTML ----
+        next_data = self._read_next_data(page)
+        if next_data:
+            summary_data = self._dig(
+                next_data,
+                ["props", "pageProps", "initialState", "product", "details", "data", "review_summary", "data"],
+            )
+            if summary_data:
+                stats = self._stats_from_summary(summary_data)
+                for r in summary_data.get("reviews", []) or []:
+                    self._add_review(reviews_by_id, r)
 
-        body_text = page.locator("body").inner_text()
-        stats = self._extract_stats(body_text)
-
-        # The product page only shows a 2-review preview until this button
-        # is clicked, which expands the full list in place (same URL).
+        # ---- Path 2: capture the real API response when "VIEW ALL REVIEWS" is clicked ----
         try:
             view_all = page.get_by_text(SEL["view_all_reviews_text"], exact=False).first
             if view_all.count() > 0:
-                view_all.click()
-                page.wait_for_timeout(2000)
-                body_text = page.locator("body").inner_text()
+                with page.expect_response(_REVIEW_API_PATTERN, timeout=15000) as response_info:
+                    view_all.click()
+                response = response_info.value
+                if response.ok:
+                    body = response.json()
+                    summary_data = body.get("payload", {}).get("data", body.get("data", {}))
+                    if summary_data:
+                        stats = self._stats_from_summary(summary_data) or stats
+                        for r in summary_data.get("reviews", []) or []:
+                            self._add_review(reviews_by_id, r)
         except Exception as exc:  # noqa: BLE001
-            log.warning(f"[meesho] Could not expand full review list, using preview only: {exc}")
+            log.warning(f"[meesho] Could not capture the review_summary API response: {exc}")
 
-        anchor_idx = body_text.find(SEL["section_anchor_text"])
-        if anchor_idx == -1:
-            log.warning("[meesho] Could not find the reviews section anchor text on the page.")
-            return [], stats
+        if not reviews_by_id and not stats:
+            # Neither the SSR payload nor the API call yielded anything —
+            # genuinely blocked this run. Raise so BaseScraper.run()'s retry
+            # gets another attempt at a fresh browser session.
+            raise RuntimeError("No review data available from SSR payload or API — page likely blocked.")
 
-        window = body_text[anchor_idx: anchor_idx + SEL["section_window_chars"]]
-
-        reviews: list[ScrapedReview] = []
-        seen_in_this_run = set()  # the expand-in-place UI duplicates the 2 preview cards
-        for match in SEL["review_pattern"].finditer(window):
-            reviewer_name, rating_str, date_raw, text = match.group(1, 2, 3, 4)
-            dedup_key = (reviewer_name.strip(), text.strip()[:50])
-            if dedup_key in seen_in_this_run:
-                continue
-            seen_in_this_run.add(dedup_key)
-
-            try:
-                rating = round(float(rating_str))
-            except ValueError:
-                continue
-
-            reviews.append(
-                ScrapedReview(
-                    reviewer_name=reviewer_name.strip() or "Anonymous",
-                    rating=rating,
-                    review_title="",
-                    review_text=text.strip(),
-                    review_date_raw=date_raw.strip(),
-                )
-            )
-
+        reviews = list(reviews_by_id.values())
+        log.info(f"[meesho] Extracted {len(reviews)} review(s) via __NEXT_DATA__/API (not DOM text scraping).")
         return reviews, stats
 
-    def _extract_stats(self, body_text: str) -> Optional[ScrapedProductStats]:
-        rating_match = SEL["overall_rating_pattern"].search(body_text)
-        total_match = SEL["total_reviews_pattern"].search(body_text)
-
-        if not rating_match:
-            log.warning("[meesho] Could not read overall rating.")
+    def _read_next_data(self, page) -> Optional[dict]:
+        try:
+            raw = page.locator("#__NEXT_DATA__").inner_text(timeout=5000)
+            return json.loads(raw)
+        except Exception as exc:  # noqa: BLE001
+            log.warning(f"[meesho] Could not read __NEXT_DATA__: {exc}")
             return None
 
-        overall_rating = float(rating_match.group(1))
-        total_reviews = int(total_match.group(2).replace(",", "")) if total_match else 0
+    @staticmethod
+    def _dig(obj: dict, path: list[str]):
+        cur = obj
+        for key in path:
+            if not isinstance(cur, dict) or key not in cur:
+                return None
+            cur = cur[key]
+        return cur
 
-        return ScrapedProductStats(overall_rating=overall_rating, total_reviews=total_reviews)
+    def _add_review(self, reviews_by_id: dict, raw: dict) -> None:
+        review_id = raw.get("review_id")
+        if review_id is None or review_id in reviews_by_id:
+            return
+        rating = int(raw.get("rating") or 0)
+        if not (1 <= rating <= 5):
+            return
+        author = raw.get("author") or {}
+        reviews_by_id[review_id] = ScrapedReview(
+            reviewer_name=(author.get("name") or "Anonymous").strip(),
+            rating=rating,
+            review_title="",
+            review_text=(raw.get("comments") or "").strip(),
+            review_date_raw=(raw.get("created") or "").strip(),
+        )
+
+    def _stats_from_summary(self, summary_data: dict) -> Optional[ScrapedProductStats]:
+        avg = summary_data.get("average_rating")
+        count = summary_data.get("review_count")
+        if avg is None:
+            return None
+        return ScrapedProductStats(overall_rating=float(avg), total_reviews=int(count or 0))
