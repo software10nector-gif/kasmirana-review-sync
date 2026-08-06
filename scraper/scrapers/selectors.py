@@ -62,13 +62,13 @@ FLIPKART = {
     #   Pure 💯
     #   Flipkart Customer
     #   , Deoband
-    #   Helpful for 3
-    #   1                    <- optional, not-helpful count (not always present)
-    #   Verified Purchase
-    #   · 1 month ago
+    #   Helpful for 3        <- "Helpful for N" if it HAS votes, or just
+    #   1                       bare "Helpful" (no number) if it has zero —
+    #   Verified Purchase       both forms confirmed live; regex below
+    #   · 1 month ago           accepts either.
     "paginated_review_pattern": re.compile(
         r"(\d)\.0\n•\n([^\n]+)\nReview for:[^\n]*\n([^\n]+)\n([^\n]+)\n,\s*[^\n]+\n"
-        r"Helpful for \d+\n(?:\d+\n)?Verified Purchase\n·\s*([^\n]+)"
+        r"Helpful(?: for \d+)?\n(?:\d+\n)?Verified Purchase\n·\s*([^\n]+)"
     ),
     "max_review_pages": 10,
 }
